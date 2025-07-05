@@ -4,7 +4,8 @@ import json
 
 if len(os.environ.get("GROQ_API_KEY")) > 30:
     from groq import Groq
-    model = "mixtral-8x7b-32768"
+#     model = "mixtral-8x7b-32768"
+    model = "llama-3.3-70b-versatile"
     client = Groq(
         api_key=os.environ.get("GROQ_API_KEY"),
         )
@@ -35,7 +36,11 @@ def generate_script(topic):
 
         Keep it brief, highly interesting, and unique.
 
-        Stictly output the script in a JSON format like below, and only provide a parsable JSON object with the key 'script'.
+        It is very important NOT to include any line breaks in the json. Each fact should start with a dash and a space, and end with a dot.
+        Do not add a line break between each fact.
+        Make facts related and following the same line of thought, sequentially telling a compelling story.
+
+        Strictly output the script in a JSON format like below, and only provide a parsable JSON object with the key 'script'.
 
         # Output
         {"script": "Here is the script ..."}

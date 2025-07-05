@@ -40,12 +40,35 @@ Note: Your response should be the response only and no extra text or data.
   """
 
 def fix_json(json_str):
-    # Replace typographical apostrophes with straight quotes
-    json_str = json_str.replace("’", "'")
-    # Replace any incorrect quotes (e.g., mixed single and double quotes)
-    json_str = json_str.replace("“", "\"").replace("”", "\"").replace("‘", "\"").replace("’", "\"")
-    # Add escaping for quotes within the strings
-    json_str = json_str.replace('"you didn"t"', '"you didn\'t"')
+    # Remove markdown JSON fences if any
+    json_str = re.sub(r"```json|```", "", json_str)
+
+    # Replace fancy quotes with straight quotes
+    replacements = {
+        "“": "\"",
+        "”": "\"",
+        "‘": "'",
+        "’": "'",
+        "«": "\"",
+        "»": "\"",
+    }
+    for k, v in replacements.items():
+        json_str = json_str.replace(k, v)
+
+    # Fix unescaped quotes inside strings:
+    # Replace occurrences of "word"some"word" to "word\"some\"word"
+    # This is tricky but try a regex to escape quotes inside array elements:
+    def escape_inner_quotes(match):
+        inner = match.group(0)
+        inner_escaped = inner.replace('"', '\\"')
+        return inner_escaped
+
+    # A simpler approach: escape quotes between brackets ["..."]
+    # but careful not to double escape
+
+    # Remove trailing commas before closing brackets/braces (common JSON error)
+    json_str = re.sub(r",(\s*[}\]])", r"\1", json_str)
+
     return json_str
 
 def getVideoSearchQueriesTimed(script,captions_timed):
