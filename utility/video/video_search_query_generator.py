@@ -71,10 +71,31 @@ def fix_json(json_str):
 
     return json_str
 
-def getVideoSearchQueriesTimed(script,captions_timed):
+def getVideoSearchQueriesTimed(script, captions_timed, custom_keywords=None):
     end = captions_timed[-1][0][1]
+
+    # If custom keywords are provided, use them instead of calling AI
+    if custom_keywords:
+        # Parse the comma-separated string into a list of keywords
+        if isinstance(custom_keywords, str):
+            keyword_list = [kw.strip() for kw in custom_keywords.split(',')][:3]
+        else:
+            keyword_list = custom_keywords[:3]
+
+        # Ensure we have exactly 3 keywords
+        while len(keyword_list) < 3:
+            keyword_list.append(keyword_list[0])
+
+        # Create time segments using the captions_timed
+        result = []
+        for caption in captions_timed:
+            time_segment = caption[0]
+            result.append([time_segment, keyword_list])
+
+        return result
+
+    # Original AI-based generation logic
     try:
-        
         out = [[[0,0],""]]
         while out[-1][0][1] != end:
             content = call_OpenAI(script,captions_timed).replace("'",'"')
@@ -88,7 +109,7 @@ def getVideoSearchQueriesTimed(script,captions_timed):
         return out
     except Exception as e:
         print("error in response",e)
-   
+
     return None
 
 def call_OpenAI(script,captions_timed):

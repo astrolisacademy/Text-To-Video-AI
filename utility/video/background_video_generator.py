@@ -52,20 +52,37 @@ def getBestVideo(query_string, orientation_landscape=True, used_vids=[]):
     return None
 
 
-def generate_video_url(timed_video_searches,video_server):
-        timed_video_urls = []
-        if video_server == "pexel":
-            used_links = []
+def generate_video_url(timed_video_searches, video_server, custom_keywords=None):
+    timed_video_urls = []
+    if video_server == "pexel":
+        used_links = []
+        if custom_keywords:
+            # Use custom keywords: call Pexels once for all keywords
+            keywords = [kw.strip() for kw in custom_keywords.split(",") if kw.strip()]
+            all_videos = []
+            for keyword in keywords:
+                vids = search_videos(keyword, orientation_landscape=True)
+                for video in vids.get("videos", []):
+                    for video_file in video.get("video_files", []):
+                        if video_file["width"] == 1920 and video_file["height"] == 1080:
+                            link_base = video_file["link"].split(".hd")[0]
+                            if link_base not in used_links:
+                                all_videos.append(video_file["link"])
+                                used_links.append(link_base)
+            # Distribute videos to all segments, cycling if not enough
+            for i, ((t1, t2), search_terms) in enumerate(timed_video_searches):
+                url = all_videos[i % len(all_videos)] if all_videos else None
+                timed_video_urls.append([[t1, t2], url])
+        else:
+            # Default: call for each segment as before
             for (t1, t2), search_terms in timed_video_searches:
                 url = ""
                 for query in search_terms:
-                  
                     url = getBestVideo(query, orientation_landscape=True, used_vids=used_links)
                     if url:
                         used_links.append(url.split('.hd')[0])
                         break
                 timed_video_urls.append([[t1, t2], url])
-        elif video_server == "stable_diffusion":
-            timed_video_urls = get_images_for_video(timed_video_searches)
-
-        return timed_video_urls
+    elif video_server == "stable_diffusion":
+        timed_video_urls = get_images_for_video(timed_video_searches)
+    return timed_video_urls

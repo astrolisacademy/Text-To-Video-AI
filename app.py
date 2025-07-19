@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a video from a topic.")
     parser.add_argument("topic", type=str, help="The topic for the video")
     parser.add_argument("--base-output-dir", type=str, default="output", help="Base output directory")
+    parser.add_argument("--keywords", type=str, help="Custom keywords for video search (comma-separated)", default=None)
 
     args = parser.parse_args()
 
@@ -51,12 +52,12 @@ if __name__ == "__main__":
     timed_captions = generate_timed_captions(SAMPLE_FILE_NAME)
     print(timed_captions)
 
-    search_terms = getVideoSearchQueriesTimed(response, timed_captions)
+    search_terms = getVideoSearchQueriesTimed(response, timed_captions, args.keywords)
     print(search_terms)
 
     background_video_urls = None
     if search_terms is not None:
-        background_video_urls = generate_video_url(search_terms, VIDEO_SERVER)
+        background_video_urls = generate_video_url(search_terms, VIDEO_SERVER, args.keywords)
         print(background_video_urls)
     else:
         print("No background video")
